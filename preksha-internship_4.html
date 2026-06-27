@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preksha's Internship Journey · AI Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blush: #F9D6DC;
+    --rose: #F2A8B8;
+    --petal: #FDE8ED;
+    --lavender: #E8D5F5;
+    --lilac: #D4B8E8;
+    --white: #FFFFFF;
+    --cream: #FFF7F9;
+    --text-dark: #3D2030;
+    --text-mid: #7A4558;
+    --text-light: #B07A90;
+    --glass-bg: rgba(255,255,255,0.55);
+    --glass-border: rgba(242,168,184,0.35);
+    --shadow-soft: 0 8px 32px rgba(180,100,130,0.12);
+    --shadow-hover: 0 16px 48px rgba(180,100,130,0.22);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--text-dark);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── ANIMATED BACKGROUND ── */
+  .bg-layer {
+    position: fixed; inset: 0; z-index: 0;
+    background: linear-gradient(135deg, #FFF0F5 0%, #FDE8F2 30%, #F0E4FA 65%, #FBF0FD 100%);
+  }
+  .bg-orb {
+    position: fixed; border-radius: 50%;
+    filter: blur(80px); opacity: 0.45; z-index: 0;
+    animation: floatOrb 12s ease-in-out infinite;
+  }
+  .orb1 { width: 500px; height: 500px; background: radial-gradient(circle, #F9C8D8, transparent); top: -100px; left: -100px; animation-delay: 0s; }
+  .orb2 { width: 400px; height: 400px; background: radial-gradient(circle, #E8D5F5, transparent); bottom: -80px; right: -80px; animation-delay: -4s; }
+  .orb3 { width: 300px; height: 300px; background: radial-gradient(circle, #FADADD, transparent); top: 40%; left: 60%; animation-delay: -8s; }
+
+  @keyframes floatOrb {
+    0%, 100% { transform: translate(0,0) scale(1); }
+    33% { transform: translate(30px,-20px) scale(1.05); }
+    66% { transform: translate(-20px,30px) scale(0.95); }
+  }
+
+  /* ── LOADING SCREEN ── */
+  #loader {
+    position: fixed; inset: 0; z-index: 1000;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #FFF0F5, #F0E4FA);
+    gap: 18px;
+  }
+  .loader-logo {
+    font-size: 2.8rem; margin-bottom: 8px;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{transform:scale(1);opacity:1;} 50%{transform:scale(1.08);opacity:0.8;} }
+
+  .loader-line {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    color: var(--text-mid);
+    opacity: 0;
+    letter-spacing: 0.04em;
+    transform: translateY(8px);
+    transition: opacity 0.5s, transform 0.5s;
+  }
+  .loader-line.visible { opacity: 1; transform: translateY(0); }
+
+  .progress-wrap {
+    width: 280px; height: 6px;
+    background: rgba(242,168,184,0.3);
+    border-radius: 99px; overflow: hidden;
+    margin-top: 4px;
+    opacity: 0; transition: opacity 0.5s;
+  }
+  .progress-wrap.visible { opacity: 1; }
+  .progress-bar {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, var(--rose), var(--lilac));
+    border-radius: 99px;
+    transition: width 0.1s linear;
+  }
+  .loader-welcome {
+    text-align: center; opacity: 0; transform: translateY(16px);
+    transition: opacity 0.7s, transform 0.7s;
+    margin-top: 12px;
+  }
+  .loader-welcome.visible { opacity: 1; transform: translateY(0); }
+  .loader-welcome h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.9rem; color: var(--text-dark);
+    margin-bottom: 6px;
+  }
+  .loader-welcome p {
+    font-size: 0.9rem; color: var(--text-mid);
+    max-width: 340px; line-height: 1.6;
+  }
+  .loader-btn {
+    margin-top: 20px;
+    padding: 12px 32px;
+    background: linear-gradient(135deg, var(--rose), var(--lilac));
+    color: white; border: none;
+    border-radius: 99px; font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem; font-weight: 600;
+    cursor: pointer; letter-spacing: 0.02em;
+    box-shadow: 0 4px 20px rgba(210,130,160,0.35);
+    transition: transform 0.2s, box-shadow 0.2s;
+    opacity: 0; pointer-events: none; transition: opacity 0.5s;
+  }
+  .loader-btn.visible { opacity: 1; pointer-events: all; }
+  .loader-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(210,130,160,0.45); }
+
+  /* ── MAIN CHAT INTERFACE ── */
+  #app {
+    position: relative; z-index: 1;
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    max-width: 760px; margin: 0 auto;
+    padding: 0 20px 60px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.8s;
+  }
+  #app.visible { opacity: 1; pointer-events: all; }
+
+  /* ── HEADER ── */
+  .chat-header {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; align-items: center; gap: 14px;
+    padding: 18px 0 14px;
+    background: linear-gradient(to bottom, var(--cream) 80%, transparent);
+  }
+  .avatar-ring {
+    width: 46px; height: 46px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--rose), var(--lilac));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem;
+    box-shadow: 0 4px 16px rgba(210,130,160,0.3);
+    flex-shrink: 0;
+    position: relative;
+  }
+  .avatar-ring::after {
+    content: '';
+    position: absolute; inset: -3px;
+    border-radius: 50%;
+    border: 2px solid var(--rose);
+    opacity: 0.5;
+    animation: ringPulse 2.5s ease-in-out infinite;
+  }
+  @keyframes ringPulse { 0%,100%{transform:scale(1);opacity:0.5;} 50%{transform:scale(1.15);opacity:0;} }
+
+  .header-info h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.05rem; color: var(--text-dark);
+  }
+  .header-info span {
+    font-size: 0.75rem; color: var(--text-light);
+    display: flex; align-items: center; gap: 5px;
+  }
+  .dot-online {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #7BC67E;
+    box-shadow: 0 0 0 2px rgba(123,198,126,0.3);
+    animation: blink 2s ease-in-out infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+
+  /* ── CHAT LOG ── */
+  #chat-log {
+    display: flex; flex-direction: column; gap: 20px;
+    padding-top: 10px; flex: 1;
+  }
+
+  .msg {
+    display: flex; gap: 12px;
+    animation: msgIn 0.4s cubic-bezier(.2,.8,.4,1) both;
+  }
+  @keyframes msgIn { from{opacity:0;transform:translateY(16px);} to{opacity:1;transform:none;} }
+
+  .msg-avatar {
+    width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; margin-top: 4px;
+  }
+  .msg.bot .msg-avatar { background: linear-gradient(135deg, var(--rose), var(--lilac)); box-shadow: 0 3px 12px rgba(210,130,160,0.25); }
+  .msg.user .msg-avatar { background: linear-gradient(135deg, var(--lavender), var(--blush)); }
+  .msg.user { flex-direction: row-reverse; }
+  .msg.user .msg-bubble {
+    background: linear-gradient(135deg, var(--lavender), var(--blush));
+    border-radius: 18px 4px 18px 18px;
+    border: 1px solid rgba(209,182,230,0.5);
+  }
+
+  .msg-bubble {
+    backdrop-filter: blur(12px);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 4px 18px 18px 18px;
+    padding: 14px 18px;
+    max-width: 78%;
+    box-shadow: var(--shadow-soft);
+    line-height: 1.65;
+    font-size: 0.93rem;
+    color: var(--text-dark);
+  }
+
+  /* ── SUGGESTION CHIPS ── */
+  #chips-section {
+    margin-top: 24px;
+    transition: opacity 0.4s;
+  }
+  .chips-label {
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--text-light); margin-bottom: 12px;
+    font-weight: 500;
+  }
+  #chips-grid {
+    display: flex; flex-wrap: wrap; gap: 10px;
+  }
+
+  .chip {
+    backdrop-filter: blur(14px);
+    background: var(--glass-bg);
+    border: 1.5px solid var(--glass-border);
+    border-radius: 99px;
+    padding: 11px 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.845rem;
+    color: var(--text-mid);
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(.2,.8,.4,1);
+    box-shadow: 0 4px 16px rgba(210,130,160,0.1);
+    user-select: none;
+    position: relative; overflow: hidden;
+    font-weight: 500;
+  }
+  .chip::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(249,214,220,0.5), rgba(232,213,245,0.5));
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+  .chip:hover { transform: translateY(-3px) scale(1.02); box-shadow: var(--shadow-hover); border-color: var(--rose); color: var(--text-dark); }
+  .chip:hover::before { opacity: 1; }
+  .chip:active { transform: scale(0.97); }
+  .chip.answered {
+    opacity: 0.35; pointer-events: none;
+    text-decoration: line-through;
+    filter: grayscale(0.4);
+  }
+
+  /* ── FULLSCREEN ANSWER ── */
+  #answer-screen {
+    position: fixed; inset: 0; z-index: 500;
+    display: flex; flex-direction: column;
+    background: linear-gradient(135deg, rgba(255,240,245,0.97) 0%, rgba(240,228,250,0.97) 100%);
+    backdrop-filter: blur(24px);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.4s;
+    overflow-y: auto;
+  }
+  #answer-screen.open { opacity: 1; pointer-events: all; }
+
+  /* blur chips when answer open */
+  #app.answer-open #chips-section,
+  #app.answer-open #chat-log {
+    filter: blur(6px);
+    pointer-events: none;
+  }
+
+  .answer-top-bar {
+    position: sticky; top: 0;
+    display: flex; align-items: center; gap: 12px;
+    padding: 18px 28px;
+    background: rgba(255,248,252,0.8);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(242,168,184,0.2);
+    z-index: 10;
+  }
+  .back-btn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 9px 20px;
+    background: var(--glass-bg);
+    border: 1.5px solid var(--glass-border);
+    border-radius: 99px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem; color: var(--text-mid);
+    cursor: pointer; font-weight: 600;
+    transition: all 0.2s;
+    backdrop-filter: blur(8px);
+  }
+  .back-btn:hover { background: var(--blush); border-color: var(--rose); color: var(--text-dark); transform: translateX(-3px); }
+
+  .answer-content {
+    flex: 1;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center;
+    padding: 48px 32px 80px;
+    max-width: 700px; margin: 0 auto; width: 100%;
+    gap: 32px;
+  }
+
+  .answer-q-bubble {
+    background: linear-gradient(135deg, var(--lavender), var(--blush));
+    border: 1px solid rgba(209,182,230,0.6);
+    border-radius: 18px 4px 18px 18px;
+    padding: 14px 22px;
+    font-size: 0.9rem; color: var(--text-mid);
+    align-self: flex-end;
+    max-width: 85%;
+    box-shadow: var(--shadow-soft);
+    animation: msgIn 0.4s both;
+    font-style: italic;
+  }
+
+  .answer-a-wrap {
+    display: flex; gap: 14px;
+    align-self: flex-start;
+    width: 100%;
+    animation: msgIn 0.5s 0.15s both;
+  }
+  .answer-a-avatar {
+    width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--rose), var(--lilac));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem;
+    box-shadow: 0 4px 16px rgba(210,130,160,0.3);
+    margin-top: 4px;
+  }
+  .answer-a-bubble {
+    background: rgba(255,255,255,0.75);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    border-radius: 4px 20px 20px 20px;
+    padding: 22px 26px;
+    font-size: 1.02rem;
+    line-height: 1.8;
+    color: var(--text-dark);
+    box-shadow: var(--shadow-hover);
+    flex: 1;
+  }
+  .answer-a-bubble strong {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.5rem;
+    display: block; margin-bottom: 12px;
+    color: var(--text-dark);
+    background: linear-gradient(135deg, var(--text-dark), var(--text-mid));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+
+
+  /* Floating petals */
+  .petal-float {
+    position: fixed; pointer-events: none;
+    font-size: 1.4rem; z-index: 999;
+    opacity: 0;
+    animation: petalFall 2.5s ease-in forwards;
+  }
+  @keyframes petalFall {
+    0% { opacity: 1; transform: translate(0,0) rotate(0deg); }
+    100% { opacity: 0; transform: translate(var(--dx), var(--dy)) rotate(360deg); }
+  }
+
+  /* ── FOOTER TAG ── */
+  .footer-tag {
+    text-align: center; padding: 20px;
+    font-size: 0.72rem; color: var(--text-light);
+    letter-spacing: 0.06em;
+    opacity: 0.7;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media(max-width:600px){
+    #app { padding: 0 14px 60px; }
+    .msg-bubble { font-size: 0.87rem; padding: 12px 15px; }
+    .answer-content { padding: 30px 18px 60px; }
+    .answer-a-bubble { font-size: 0.9rem; padding: 16px 18px; }
+    .answer-a-bubble strong { font-size: 1.25rem; }
+  }
+
+  /* Typing indicator */
+  .typing-dots { display: flex; gap: 5px; padding: 6px 2px; align-items: center; }
+  .typing-dots span {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--rose); display: inline-block;
+    animation: bounce 1.2s ease-in-out infinite;
+  }
+  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%,80%,100%{transform:translateY(0);} 40%{transform:translateY(-7px);} }
+
+  /* Hidden tracker pixel — ADMIN only */
+  #__tracker { display: none; }
+
+  /* ── SPECIAL TEAMMATE SEQUENCE ── */
+  .special-seq {
+    display: flex; flex-direction: column; gap: 0;
+    font-family: 'JetBrains Mono', monospace;
+    width: 100%;
+  }
+
+  /* Terminal processing rows */
+  .seq-terminal {
+    background: rgba(35, 15, 25, 0.88);
+    border-radius: 14px 14px 0 0;
+    padding: 22px 24px 20px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .seq-row {
+    display: flex; align-items: center; gap: 10px;
+    opacity: 0; transform: translateY(6px);
+    transition: opacity 0.35s, transform 0.35s;
+    font-size: 0.8rem;
+  }
+  .seq-row.show { opacity: 1; transform: translateY(0); }
+  .seq-label {
+    color: var(--rose); font-weight: 500; min-width: 100px;
+    letter-spacing: 0.04em;
+  }
+  .seq-value { color: #f0d0e0; }
+  .seq-value.muted { color: rgba(240,208,224,0.5); }
+  .seq-cursor {
+    display: inline-block; width: 8px; height: 14px;
+    background: var(--rose); margin-left: 3px;
+    animation: cursorBlink 0.8s steps(1) infinite;
+    vertical-align: middle;
+  }
+  @keyframes cursorBlink { 0%,50%{opacity:1;} 51%,100%{opacity:0;} }
+
+  .seq-progress-wrap {
+    height: 3px; background: rgba(255,255,255,0.08);
+    border-radius: 99px; overflow: hidden; margin-top: 2px;
+    width: 0; transition: width 0.3s;
+  }
+  .seq-progress-wrap.visible { width: 100%; }
+  .seq-progress-fill {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, var(--rose), var(--lilac));
+    border-radius: 99px;
+    transition: width 0.08s linear;
+  }
+
+  /* 404 Error Card */
+  .seq-error-card {
+    background: rgba(255,255,255,0.0);
+    border-radius: 0 0 14px 14px;
+    padding: 0;
+    opacity: 0;
+    max-height: 0; overflow: hidden;
+    transition: opacity 0.5s, max-height 0.6s cubic-bezier(.2,.8,.4,1), padding 0.4s;
+  }
+  .seq-error-card.show {
+    opacity: 1; max-height: 700px;
+    padding: 0;
+  }
+
+  .error-card-inner {
+    border: 1.5px solid rgba(242,100,120,0.4);
+    border-top: none;
+    border-radius: 0 0 14px 14px;
+    overflow: hidden;
+  }
+
+  .error-card-header {
+    background: linear-gradient(135deg, rgba(255,100,120,0.15), rgba(220,80,110,0.08));
+    border-bottom: 1px solid rgba(242,100,120,0.2);
+    padding: 16px 22px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .error-code {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.8rem;
+    background: linear-gradient(135deg, #F26878, #D4A0B0);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+  }
+  .error-text-wrap { display: flex; flex-direction: column; gap: 2px; }
+  .error-title {
+    font-weight: 700; font-size: 0.95rem; color: #C05068;
+    letter-spacing: 0.02em;
+  }
+  .error-subtitle { font-size: 0.78rem; color: var(--text-light); }
+
+  .error-card-body {
+    background: rgba(255,248,252,0.7);
+    padding: 18px 22px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+
+  .error-detail-row {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    display: flex; flex-direction: column; gap: 6px;
+    opacity: 0; transform: translateY(8px);
+    transition: opacity 0.4s, transform 0.4s;
+  }
+  .error-detail-row.show { opacity: 1; transform: none; }
+
+  .edr-label { color: var(--rose); font-weight: 500; margin-bottom: 2px; }
+  .edr-val { color: var(--text-mid); line-height: 1.7; }
+  .edr-val .highlight {
+    background: linear-gradient(135deg, var(--blush), var(--lavender));
+    padding: 2px 8px; border-radius: 6px;
+    font-weight: 600; color: var(--text-dark);
+  }
+
+  .error-divider {
+    height: 1px; background: rgba(242,168,184,0.25);
+    opacity: 0; transition: opacity 0.4s;
+  }
+  .error-divider.show { opacity: 1; }
+
+  .returning-row {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    background: rgba(232,213,245,0.3);
+    border: 1px solid rgba(212,184,232,0.4);
+    border-radius: 10px;
+    padding: 14px 18px;
+    color: var(--text-mid);
+    opacity: 0; transform: translateY(8px);
+    transition: opacity 0.5s, transform 0.5s;
+    line-height: 1.8;
+  }
+  .returning-row.show { opacity: 1; transform: none; }
+  .ret-key { color: var(--lilac); font-weight: 600; }
+  .ret-val { color: var(--text-dark); font-weight: 700; }
+  .ret-heart { font-size: 1rem; }
+</style>
+</head>
+<body>
+
+<!-- BG -->
+<div class="bg-layer"></div>
+<div class="bg-orb orb1"></div>
+<div class="bg-orb orb2"></div>
+<div class="bg-orb orb3"></div>
+
+<!-- ═══════════ LOADING SCREEN ═══════════ -->
+<div id="loader">
+  <div class="loader-logo">🌸</div>
+  <div class="loader-line" id="l1" style="font-family:'JetBrains Mono',monospace">Initializing AI Assistant...</div>
+  <div class="loader-line" id="l2" style="font-family:'JetBrains Mono',monospace">Loading Internship Memories...</div>
+  <div class="progress-wrap" id="progress-wrap">
+    <div class="progress-bar" id="progress-bar"></div>
+  </div>
+  <div class="loader-line" id="l3" style="font-family:'JetBrains Mono',monospace">████████████████ 100%</div>
+  <div class="loader-welcome" id="loader-welcome">
+    <h2>Hi, I'm Preksha's AI Assistant ✨</h2>
+    <p>As Preksha is close to completing her 6-month internship, I'll take you through her journey with a short and swift chat playbook.</p>
+  </div>
+  <button class="loader-btn" id="loader-btn" onclick="enterApp()">Let's begin →</button>
+</div>
+
+<!-- ═══════════ MAIN APP ═══════════ -->
+<div id="app">
+  <header class="chat-header">
+    <div class="avatar-ring">🌸</div>
+    <div class="header-info">
+      <h1>Preksha's AI Assistant</h1>
+      <span><div class="dot-online"></div> Online · Internship Mode</span>
+    </div>
+  </header>
+
+  <div id="chat-log">
+    <div class="msg bot">
+      <div class="msg-avatar">🤖</div>
+      <div class="msg-bubble">Hi! Ask me about my internship journey ✨</div>
+    </div>
+  </div>
+
+  <div id="chips-section">
+    <div class="chips-label">Choose a question</div>
+    <div id="chips-grid"></div>
+  </div>
+</div>
+
+<!-- ═══════════ FULL SCREEN ANSWER ═══════════ -->
+<div id="answer-screen">
+  <div class="answer-top-bar">
+    <button class="back-btn" onclick="closeAnswer()">← Back to questions</button>
+  </div>
+  <div class="answer-content">
+    <div class="answer-q-bubble" id="ans-q"></div>
+    <div class="answer-a-wrap">
+      <div class="answer-a-avatar">🤖</div>
+      <div class="answer-a-bubble" id="ans-a"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ TRACKER (hidden) ═══════════ -->
+<div id="__tracker"></div>
+
+<div class="footer-tag">Made with 💗 · Preksha's Internship 2026</div>
+
+<script>
+// ══════════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════════
+const QA = [
+  {
+    id: 0,
+    chip: "If Preksha could describe this internship in one word",
+    q:   "If Preksha could describe this internship in one word, what would it be?",
+    title: "A Happy Hustle",
+    body: `Busy, but never burdensome. 🌸`
+  },
+  {
+    id: 1,
+    chip: "What was Preksha's first impression?",
+    q:   "What was Preksha's first impression on Day 1?",
+    title: null,
+    body: `The first thought that came was — <em>"Is this really how corporate is supposed to feel? Can a workplace really be this welcoming?"</em><br><br>I was wondering if this was the standard, or if I had simply gotten incredibly lucky.`
+  },
+  {
+    id: 2,
+    chip: "Which project activated Preksha to start working seriously?",
+    q:   "Which project activated Preksha to start working seriously?",
+    title: "Similar Jiras",
+    body: `It wasn't the complexity of the project that changed me — it was the <strong style="font-size:inherit;display:inline;background:none;-webkit-text-fill-color:var(--text-dark);">trust</strong>.<br><br>I remember Aniket asking Shubham, my co-intern, to let me handle most of the dev tasks because I had already built the POCs. He wanted me to experience what it feels like to own a project from the very beginning.<br><br>Looking back, I think that was the moment my internship truly <em>began</em>.`
+  },
+  {
+    id: 3,
+    chip: "Which achievement made Preksha smile the most?",
+    q:   "Which achievement made Preksha smile the most?",
+    title: "AI Lounge ✨",
+    body: `Without a doubt.<br><br>Public speaking has always been something I genuinely love — from being an MC and participating in debates throughout school and college, to presenting on stage. It's always been a part of who I am.<br><br>So when I was given the opportunity to present at AI Lounge, I was beyond thrilled. It wasn't just another presentation — it felt like a chance to bring together two things I enjoy the most: <em>AI and public speaking</em>.<br><br>I walked in hoping to meet the expectations everyone had placed in me... and I walked out with an even bigger smile. I had made the most of that opportunity. 🎤`
+  },
+  {
+    id: 4,
+    chip: "Who was the most fun teammate?",
+    q:   "Who was that one person Preksha enjoyed working with the most?",
+    title: null,
+    isSpecial: true,
+    body: null
+  },
+  {
+    id: 5,
+    chip: "If these six months were a book...",
+    q:   "If these six months were a book, what would the last page say?",
+    title: "The Last Page 📖",
+    body: `These 6 months truly made me experience things I had never imagined, nor will I ever again in quite the same way.<br><br>From being a serious student to realizing the world is a place to have some fun too, I got to learn so much. Watching seniors negotiate over what's deliverable, debates over balancing technical excellence against business needs — these gave me insights no classroom could ever teach.<br><br>The affectionate treatment towards us as interns, and the projects that demanded not just work but research and self-development — all of these have brought me to a significant milestone in my career.<br><br>And this won't stop. I'll carry these learnings forward as a professional. Since tomorrow marks the end of my internship, I'll be temporarily stepping away while the joining formalities for my <strong style="font-size:inherit;display:inline;background:none;-webkit-text-fill-color:var(--text-dark);">SDE-1 role</strong> are completed. My Glip account will soon become inactive.<br><br>I look forward to returning with a stronger skill set, more experience, and the same enthusiasm — this time as an SDE-1. 🚀<br><br><em>You can reach out via <a href="https://www.linkedin.com/in/preksha-n-r-571799353" target="_blank" style="color:var(--text-mid)">LinkedIn</a> or <a href="mailto:nrpreksha09@gmail.com" style="color:var(--text-mid)">nrpreksha09@gmail.com</a></em><br><br>Thanks, all. 💗`
+  }
+];
+
+function runSpecialSequence(container) {
+  container.innerHTML = `
+    <div class="special-seq">
+      <div class="seq-terminal" id="seq-term">
+        <div class="seq-row" id="sr0">
+          <span class="seq-label">STATUS</span>
+          <span class="seq-value">Query received... <span class="seq-cursor"></span></span>
+        </div>
+        <div class="seq-row" id="sr1">
+          <span class="seq-label">SEARCHING</span>
+          <span class="seq-value">Scanning internship memory bank...</span>
+        </div>
+        <div class="seq-row" id="sr2">
+          <span class="seq-label">PROGRESS</span>
+          <span class="seq-value" style="width:100%;flex:1">
+            <div class="seq-progress-wrap" id="seq-pw"><div class="seq-progress-fill" id="seq-pf"></div></div>
+          </span>
+        </div>
+        <div class="seq-row" id="sr3">
+          <span class="seq-label">ALGORITHM</span>
+          <span class="seq-value">Applying teammate ranking algorithm...</span>
+        </div>
+        <div class="seq-row" id="sr4">
+          <span class="seq-label">SORTING</span>
+          <span class="seq-value muted">fun_score DESC, vibe_index DESC, memory_weight DESC</span>
+        </div>
+        <div class="seq-row" id="sr5">
+          <span class="seq-label">RESULT</span>
+          <span class="seq-value" style="color:#F26878;font-weight:600;">NULL ✗</span>
+        </div>
+      </div>
+      <div class="seq-error-card" id="seq-err">
+        <div class="error-card-inner">
+          <div class="error-card-header">
+            <div class="error-code">404</div>
+            <div class="error-text-wrap">
+              <div class="error-title">Answer Not Found</div>
+              <div class="error-subtitle">The requested teammate could not be resolved to a single result.</div>
+            </div>
+          </div>
+          <div class="error-card-body">
+            <div class="error-detail-row" id="edr0">
+              <div class="edr-label">REASON:</div>
+              <div class="edr-val">The dataset contains too many amazing teammates<br>with <span class="highlight">equally high similarity scores</span>.<br>Unable to return only one result.</div>
+            </div>
+            <div class="error-divider" id="ediv"></div>
+            <div class="returning-row" id="edr1">
+              <span class="ret-key">UNABLE &nbsp;&nbsp;&nbsp;</span> <span style="color:var(--text-mid)">→ Cannot return only one result</span><br>
+              <span class="ret-key">RETURNING &nbsp;</span> <span class="ret-val">SELECT * FROM Team;</span> <span class="ret-heart">❤️</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Animate rows in sequence
+  const delays = [0, 350, 600, 1100, 1400, 1950];
+  delays.forEach((d, i) => {
+    setTimeout(() => {
+      const el = document.getElementById('sr' + i);
+      if(el) el.classList.add('show');
+      // Kick off progress bar with sr2
+      if(i === 2) {
+        const pw = document.getElementById('seq-pw');
+        const pf = document.getElementById('seq-pf');
+        if(pw) pw.classList.add('visible');
+        let p = 0;
+        const t = setInterval(() => {
+          p += Math.random() * 9 + 4;
+          if(p >= 100) { p = 100; clearInterval(t); }
+          if(pf) pf.style.width = p + '%';
+        }, 70);
+      }
+    }, d);
+  });
+
+  // Show 404 error card after terminal finishes
+  setTimeout(() => {
+    const card = document.getElementById('seq-err');
+    if(card) card.classList.add('show');
+  }, 2600);
+
+  setTimeout(() => {
+    const r = document.getElementById('edr0');
+    if(r) r.classList.add('show');
+  }, 3100);
+
+  setTimeout(() => {
+    const d = document.getElementById('ediv');
+    if(d) d.classList.add('show');
+  }, 3500);
+
+  setTimeout(() => {
+    const r = document.getElementById('edr1');
+    if(r) r.classList.add('show');
+  }, 3800);
+}
+
+// ══════════════════════════════════════════
+//  TRACKER (hidden, stored in localStorage)
+// ══════════════════════════════════════════
+const TRACKER_KEY = '__prk_visit_log__';
+function trackEvent(type, detail='') {
+  try {
+    const log = JSON.parse(localStorage.getItem(TRACKER_KEY) || '[]');
+    log.push({ ts: new Date().toISOString(), type, detail, ua: navigator.userAgent.substring(0,80) });
+    localStorage.setItem(TRACKER_KEY, JSON.stringify(log));
+  } catch(e){}
+}
+// Track page view on load
+trackEvent('page_view');
+
+// Admin console access: type viewTracker() in browser console
+window.viewTracker = function() {
+  try {
+    const log = JSON.parse(localStorage.getItem(TRACKER_KEY) || '[]');
+    console.group('📊 Preksha Site Tracker');
+    console.log(`Total events: ${log.length}`);
+    const views = log.filter(e=>e.type==='page_view');
+    const clicks = log.filter(e=>e.type==='chip_click');
+    console.log(`Page views: ${views.length}`);
+    console.log(`Chip clicks: ${clicks.length}`);
+    const byChip = {};
+    clicks.forEach(e=>{ byChip[e.detail] = (byChip[e.detail]||0)+1; });
+    console.log('Clicks per chip:', byChip);
+    console.log('Full log:', log);
+    console.groupEnd();
+    return log;
+  } catch(e){ return []; }
+};
+
+// ══════════════════════════════════════════
+//  LOADER SEQUENCE
+// ══════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  const steps = [
+    { id:'l1', delay:400 },
+    { id:'l2', delay:1100 },
+  ];
+  steps.forEach(s => {
+    setTimeout(() => document.getElementById(s.id).classList.add('visible'), s.delay);
+  });
+
+  // Progress bar
+  setTimeout(() => {
+    const wrap = document.getElementById('progress-wrap');
+    wrap.classList.add('visible');
+    const bar = document.getElementById('progress-bar');
+    let pct = 0;
+    const ticker = setInterval(() => {
+      pct += Math.random() * 8 + 3;
+      if(pct >= 100) { pct = 100; clearInterval(ticker); }
+      bar.style.width = pct + '%';
+    }, 80);
+  }, 1600);
+
+  setTimeout(() => {
+    document.getElementById('l3').classList.add('visible');
+  }, 3200);
+
+  setTimeout(() => {
+    document.getElementById('loader-welcome').classList.add('visible');
+  }, 3800);
+
+  setTimeout(() => {
+    document.getElementById('loader-btn').classList.add('visible');
+  }, 4400);
+
+  // Build chips
+  buildChips();
+});
+
+// ══════════════════════════════════════════
+//  ENTER APP
+// ══════════════════════════════════════════
+function enterApp() {
+  trackEvent('enter_app');
+  const loader = document.getElementById('loader');
+  loader.style.transition = 'opacity 0.7s';
+  loader.style.opacity = '0';
+  setTimeout(() => {
+    loader.style.display = 'none';
+    const app = document.getElementById('app');
+    app.classList.add('visible');
+  }, 700);
+}
+
+// ══════════════════════════════════════════
+//  BUILD CHIPS
+// ══════════════════════════════════════════
+function buildChips() {
+  const grid = document.getElementById('chips-grid');
+  grid.innerHTML = '';
+  QA.forEach(item => {
+    const btn = document.createElement('button');
+    btn.className = 'chip';
+    btn.textContent = item.chip;
+    btn.id = 'chip-' + item.id;
+    btn.onclick = () => handleChip(item);
+    grid.appendChild(btn);
+  });
+}
+
+// ══════════════════════════════════════════
+//  HANDLE CHIP CLICK
+// ══════════════════════════════════════════
+function handleChip(item) {
+  trackEvent('chip_click', item.chip);
+  
+  // Mark as answered
+  const chipEl = document.getElementById('chip-' + item.id);
+  if(chipEl) chipEl.classList.add('answered');
+
+  // Show user bubble + typing then answer
+  addUserMsg(item.q);
+  spawnPetals(chipEl);
+
+  setTimeout(() => {
+    addTypingIndicator();
+    setTimeout(() => {
+      removeTypingIndicator();
+      openAnswer(item);
+    }, 900);
+  }, 400);
+}
+
+// ══════════════════════════════════════════
+//  CHAT LOG HELPERS
+// ══════════════════════════════════════════
+function addUserMsg(text) {
+  const log = document.getElementById('chat-log');
+  const msg = document.createElement('div');
+  msg.className = 'msg user';
+  msg.innerHTML = `<div class="msg-avatar">👤</div><div class="msg-bubble">${text}</div>`;
+  log.appendChild(msg);
+  msg.scrollIntoView({ behavior:'smooth', block:'end' });
+}
+
+let typingEl = null;
+function addTypingIndicator() {
+  const log = document.getElementById('chat-log');
+  typingEl = document.createElement('div');
+  typingEl.className = 'msg bot';
+  typingEl.id = 'typing-indicator';
+  typingEl.innerHTML = `<div class="msg-avatar">🤖</div><div class="msg-bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>`;
+  log.appendChild(typingEl);
+  typingEl.scrollIntoView({ behavior:'smooth', block:'end' });
+}
+function removeTypingIndicator() {
+  const el = document.getElementById('typing-indicator');
+  if(el) el.remove();
+}
+
+// ══════════════════════════════════════════
+//  ANSWER SCREEN
+// ══════════════════════════════════════════
+function openAnswer(item) {
+  const screen = document.getElementById('answer-screen');
+  const qEl = document.getElementById('ans-q');
+  const aEl = document.getElementById('ans-a');
+
+  qEl.textContent = item.q;
+
+  if(item.isSpecial) {
+    aEl.innerHTML = '';
+    runSpecialSequence(aEl);
+  } else {
+    let html = '';
+    if(item.title) html += `<strong>${item.title}</strong>`;
+    html += item.body;
+    aEl.innerHTML = html;
+  }
+
+  document.getElementById('app').classList.add('answer-open');
+  screen.classList.add('open');
+  window.scrollTo({ top: 0, behavior:'smooth' });
+}
+
+function closeAnswer() {
+  const screen = document.getElementById('answer-screen');
+  screen.classList.remove('open');
+  document.getElementById('app').classList.remove('answer-open');
+}
+
+// ══════════════════════════════════════════
+//  PETAL BURST ANIMATION
+// ══════════════════════════════════════════
+function spawnPetals(el) {
+  const petals = ['🌸','🌺','✨','💗','🌷'];
+  const rect = el ? el.getBoundingClientRect() : {left: window.innerWidth/2, top: window.innerHeight/2, width: 0, height: 0};
+  const cx = rect.left + rect.width/2;
+  const cy = rect.top + rect.height/2;
+  for(let i=0;i<8;i++){
+    const p = document.createElement('div');
+    p.className='petal-float';
+    p.textContent = petals[Math.floor(Math.random()*petals.length)];
+    const angle = (i/8)*Math.PI*2;
+    const dist = 80 + Math.random()*60;
+    p.style.setProperty('--dx', (Math.cos(angle)*dist)+'px');
+    p.style.setProperty('--dy', (Math.sin(angle)*dist - 60)+'px');
+    p.style.left = cx + 'px';
+    p.style.top = cy + 'px';
+    p.style.animationDelay = (Math.random()*0.3)+'s';
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(), 2800);
+  }
+}
+</script>
+</body>
+</html>
